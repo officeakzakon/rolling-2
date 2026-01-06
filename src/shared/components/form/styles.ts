@@ -1,3 +1,4 @@
+import { CircularProgress } from "@mui/material";
 import colors from "shared/styles/colors";
 import styled from "styled-components";
 
@@ -68,4 +69,8 @@ export const PopupEl = styled.div`
   .pop-description {
     font-size: 18px;
   }
+`;
+
+export const FormLoaderStyled = styled(CircularProgress)`
+  margin: 200px auto;
 `;

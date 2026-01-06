@@ -15,8 +15,8 @@ import {
 } from "@mui/material";
 import { useFormik } from "formik";
 import { validationSchema } from "./helpers/validationSchema";
-import { FormUl, FormWrap } from "./styles";
-import { useCallback, useEffect, useState } from "react";
+import { FormLoaderStyled, FormUl, FormWrap } from "./styles";
+import { ChangeEvent, useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { toUpper } from "./helpers/toUpper";
@@ -25,6 +25,7 @@ import "react-international-phone/style.css";
 import { whiteTheme } from "shared/themes/white-theme";
 import { WhiteBackground } from "shared/styles/styles";
 import { sendDataBot } from "@/app/api/sendDataBot";
+import { formValidation } from "./helpers/formValidation";
 
 interface IProps {
   onAcceptFrom?: () => void;
@@ -65,12 +66,13 @@ const plusRegex = /^\+.*/;
 const Form: React.FC<IProps> = (props) => {
   const { onAcceptFrom = () => null } = props;
   const [isSending, setIsSending] = useState(false);
+  const [isCountryLoad, setIsCountryLoad] = useState(false);
   const router = useRouter();
 
   const sendForm = useCallback(async (values: typeof initialValues) => {
     const parsedValues = Object.entries(values)
-  .map(([key, value]) => `${key}: ${value}`)
-  .join("\n");
+      .map(([key, value]) => `${key}: ${value}`)
+      .join("\n");
     await sendDataBot(parsedValues);
   }, []);
 
@@ -113,7 +115,7 @@ const Form: React.FC<IProps> = (props) => {
           fontSize: "16px",
           height: "56px",
         }}
-        defaultCountry="ua"
+        defaultCountry="de"
         value={formik.values.phone}
         onChange={(phone) => formik.setFieldValue("phone", phone)}
         className="w-full"
@@ -182,6 +184,7 @@ const Form: React.FC<IProps> = (props) => {
     {
       id: "lostMoney",
       label: "Сумма потери в USD (От 500 USD)",
+      options: { onlyNumbers: true },
     },
     {
       id: "workWithOther",
@@ -208,14 +211,32 @@ const Form: React.FC<IProps> = (props) => {
     return newValue;
   };
 
+  const setFormikValue = (
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    options?: IInputOptions
+  ) => {
+    const isValid = formValidation(event.target.value, options);
+    if (!isValid) {
+      return;
+    }
+    formik.handleChange(event);
+  };
+
   // Country code
   useEffect(() => {
+    setIsCountryLoad(true);
     const getCountryCode = async () => {
-      const { data } = await axios({
-        method: "GET",
-        url: "https://ipapi.co/json/",
-      });
-      formik.setFieldValue("phone", data.country_calling_code);
+      try {
+        const { data } = await axios({
+          method: "GET",
+          url: "https://ipapi.co/json/",
+        });
+        formik.setFieldValue("phone", data.country_calling_code);
+      } catch (error) {
+        console.log("error", error);
+      } finally {
+        setIsCountryLoad(false);
+      }
     };
 
     getCountryCode();
@@ -225,42 +246,48 @@ const Form: React.FC<IProps> = (props) => {
     <>
       <FormWrap onSubmit={formik.handleSubmit}>
         <FormUl>
-          {inputs.map((input, index) => {
-            const id = input.id as keyof typeof initialValues;
+          {isCountryLoad ? (
+            <FormLoaderStyled />
+          ) : (
+            <>
+              {inputs.map((input, index) => {
+                const id = input.id as keyof typeof initialValues;
 
-            return (
-              <li key={`${input.label}_${index}`}>
-                {input.customComponent ? (
-                  <div key={index}>{input.customComponent}</div>
-                ) : (
-                  <TextField
-                    variant="filled"
-                    label={input.label}
-                    id={id}
-                    name={id}
-                    onChange={formik.handleChange}
-                    value={getValue(
-                      formik.values[id as keyof typeof initialValues],
-                      input.options
+                return (
+                  <li key={`${input.label}_${index}`}>
+                    {input.customComponent ? (
+                      <div key={index}>{input.customComponent}</div>
+                    ) : (
+                      <TextField
+                        variant="filled"
+                        label={input.label}
+                        id={id}
+                        name={id}
+                        onChange={(event) => setFormikValue(event, input.options)}
+                        value={getValue(
+                          formik.values[id as keyof typeof initialValues],
+                          input.options
+                        )}
+                      />
                     )}
-                  />
-                )}
-                {formik.errors[id] && formik.touched[id] ? (
-                  <span className="error-text">{formik.errors[id]}</span>
-                ) : null}
-              </li>
-            );
-          })}
-          <div>
-            <Button
-              disabled={isSending}
-              className="formButton"
-              variant="contained"
-              type="submit"
-            >
-              {isSending ? <CircularProgress /> : "Оставить заявку"}
-            </Button>
-          </div>
+                    {formik.errors[id] && formik.touched[id] ? (
+                      <span className="error-text">{formik.errors[id]}</span>
+                    ) : null}
+                  </li>
+                );
+              })}
+              <div>
+                <Button
+                  disabled={isSending}
+                  className="formButton"
+                  variant="contained"
+                  type="submit"
+                >
+                  {isSending ? <CircularProgress /> : "Оставить заявку"}
+                </Button>
+              </div>
+            </>
+          )}
         </FormUl>
       </FormWrap>
     </>
