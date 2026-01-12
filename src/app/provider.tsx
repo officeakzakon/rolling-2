@@ -20,10 +20,8 @@ const Provider = ({ children }: IProps) => {
 
   const scripts = () => {
     switch (true) {
-      case hostname === "rollingreserv.info":
+      case hostname === "www.rollingreserve.org":
         return Script1();
-      case hostname === "rollingres.com":
-        return Script2();
       default:
         return null;
     }
