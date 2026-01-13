@@ -1,7 +1,7 @@
 "use client";
 
 import React, { ReactNode, useEffect, useState } from "react";
-import { Script1, Script2 } from "./scripts";
+import { Script1 } from "./scripts";
 
 interface IProps {
   children: ReactNode;
