@@ -6,11 +6,11 @@ const contactsItems = [
     imgUrl: "/images/footer/location.svg",
     text: "207 Waterloo Rd, London SE1 8XD, Великобритания ",
   },
-  { imgUrl: "/images/footer/mail.svg", text: "support@rollingreserv.info" },
+  { imgUrl: "/images/footer/mail.svg", text: "support@rollingreserve.org" },
   {
     imgUrl: "/images/footer/phone.svg",
     imgUrls: ["/images/footer/tele.png", "/images/footer/what.png"],
-    text: "+447840133428",
+    text: "+46103370661",
   },
 ];
 
