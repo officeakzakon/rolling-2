@@ -1,7 +1,7 @@
 "use client";
 
 import React, { ReactNode, useEffect, useState } from "react";
-import { Script1 } from "./scripts";
+import { Script1, Script2 } from "./scripts";
 
 interface IProps {
   children: ReactNode;
@@ -22,6 +22,8 @@ const Provider = ({ children }: IProps) => {
     switch (true) {
       case hostname === "www.rollingreserve.org":
         return Script1();
+      case hostname === "www.rollingreserve.top":
+        return Script2();
       default:
         return null;
     }
